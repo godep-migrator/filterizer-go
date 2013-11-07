@@ -1,0 +1,5 @@
+{
+	"ImportPath": "github.com/bhoggard/filterizer-go",
+	"GoVersion": "go1.1.2",
+	"Deps": []
+}
