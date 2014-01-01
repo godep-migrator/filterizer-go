@@ -10,8 +10,7 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", hello)
-	fmt.Println("listening...")
+	http.HandleFunc("/", home)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
@@ -22,7 +21,7 @@ func main() {
 	}
 }
 
-func hello(res http.ResponseWriter, req *http.Request) {
+func home(res http.ResponseWriter, req *http.Request) {
 	dbmap := initDb()
 	obj, err := dbmap.Get(Venue{}, 4)
 	checkErr(err, "failed to load Venue")
