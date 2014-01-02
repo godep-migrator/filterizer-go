@@ -1,0 +1,15 @@
+{
+	"ImportPath": "github.com/bhoggard/filterizer-go",
+	"GoVersion": "go1.2 darwin/amd64",
+	"Deps": [
+		{
+			"ImportPath": "github.com/coopernurse/gorp",
+			"Comment": "v1.3",
+			"Rev": "d2579ddda55020b778370c79aa0785e0f5d0f2e4"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Rev": "78760269eebe5e70b28bb94bff676d7b28df275d"
+		}
+	]
+}
