@@ -34,17 +34,50 @@ type Venue struct {
 	Name          string
 	Address       string
 	Website       string
-	NeigborhoodId int64 `db:"neighborhood_id"`
+	NeigborhoodId int64     `db:"neighborhood_id"`
+	CreatedAt     time.Time `db:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at"`
 }
 
 type Event struct {
 	Id               int64
 	Title            string
-	VenueId          int64 ` db:"venue_id"`
-	StartDate        time.Time
-	EndDate          time.Time
-	OpeningDate      time.Time
-	OpeningStartTime time.Time
-	OpeningEndTime   time.Time
+	VenueId          int64     `db:"venue_id"`
+	StartDate        time.Time `db:"start_date"`
+	EndDate          time.Time `db:"end_date"`
+	OpeningDate      time.Time `db:"opening_date"`
+	OpeningStartTime time.Time `db:"opening_start_time"`
+	OpeningEndTime   time.Time `db:"opening_end_time"`
 	Website          string
+	Tweeted          bool
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
+	CachedVenue      *Venue
+}
+
+func OpeningSoon() []Event {
+	dbmap := initDb()
+	var events []Event
+	_, err := dbmap.Select(&events, "select * from events where venue_id=1")
+	checkErr(err, "Event select failed")
+	return events
+}
+
+func (e *Event) Url() string {
+	if e.Website != "" {
+		return e.Website
+	}
+	return e.Venue().Website
+}
+
+func (e *Event) Venue() *Venue {
+	if e.CachedVenue != nil {
+		return e.CachedVenue
+	}
+	dbmap := initDb()
+	obj, err := dbmap.Get(Venue{}, e.VenueId)
+	checkErr(err, "Venue select failed")
+	venue := obj.(*Venue)
+	e.CachedVenue = venue
+	return venue
 }

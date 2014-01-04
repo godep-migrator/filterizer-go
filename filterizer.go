@@ -1,32 +1,33 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
+	"github.com/codegangsta/martini"
+	"github.com/codegangsta/martini-contrib/render"
 	"log"
-	// "github.com/kelseyhightower/envconfig"
 	"net/http"
 	"os"
-	// "time"
 )
 
 func main() {
-	http.HandleFunc("/", home)
+	m := martini.Classic()
+	m.Use(render.Renderer())
+	m.Get("/", home)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
-	err := http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(":"+port, m)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func home(res http.ResponseWriter, req *http.Request) {
-	dbmap := initDb()
-	obj, err := dbmap.Get(Venue{}, 4)
-	checkErr(err, "failed to load Venue")
-	venue := obj.(*Venue)
-	fmt.Fprintln(res, venue.Name)
+func home(r render.Render) {
+	// var tmpl_vars map[string]interface{}
+	tmpl_vars := make(map[string]interface{})
+	tmpl_vars["opening_soon"] = OpeningSoon()
+	r.HTML(200, "home", tmpl_vars)
 }
 
 func checkErr(err error, msg string) {
