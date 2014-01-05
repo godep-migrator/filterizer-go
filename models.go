@@ -9,40 +9,34 @@ import (
 	"time"
 )
 
-func initDb() *gorp.DbMap {
-	// connect to db using standard Go database/sql API
-	// use whatever database/sql driver you wish
-	connection := os.Getenv("FILTERIZER_DSN")
-	if connection == "" {
-		connection = os.Getenv("DATABASE_URL")
-	}
-	db, err := sql.Open("postgres", connection)
-	checkErr(err, "sql.Open failed")
-
-	// construct a gorp DbMap
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-
-	dbmap.AddTableWithName(Neighborhood{}, "neighborhoods").SetKeys(true, "Id")
-	dbmap.AddTableWithName(Venue{}, "venues").SetKeys(true, "Id")
-	dbmap.AddTableWithName(Event{}, "events").SetKeys(true, "Id")
-
-	return dbmap
-}
-
-type Neighborhood struct {
-	Id   int64
-	Name string
+var Neighborhoods = map[int64]string{
+	1:  "Chelsea",
+	2:  "East Village / Lower East Side",
+	3:  "Bushwick/Ridgewood",
+	5:  "Tribeca / Downtown",
+	6:  "SoHo",
+	7:  "Williamsburg",
+	8:  "Upper East Side",
+	9:  "Midtown",
+	10: "Gowanus",
+	11: "Long Island City",
+	12: "Museums",
+	13: "Greenwich Village",
+	14: "Dumbo",
+	15: "Boerum Hill",
+	16: "Bronx",
+	17: "Sunset Park, Brooklyn",
+	18: "Hell's Kitchen/Midtown West",
 }
 
 type Venue struct {
-	Id                 int64
-	Name               string
-	Address            string
-	Website            string
-	NeighborhoodId     int64         `db:"neighborhood_id"`
-	CreatedAt          time.Time     `db:"created_at"`
-	UpdatedAt          time.Time     `db:"updated_at"`
-	CachedNeighborhood *Neighborhood `db:"-"`
+	Id             int64
+	Name           string
+	Address        string
+	Website        string
+	NeighborhoodId int64     `db:"neighborhood_id"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
 }
 
 type Event struct {
@@ -58,7 +52,26 @@ type Event struct {
 	Tweeted          bool
 	CreatedAt        time.Time `db:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at"`
-	CachedVenue      *Venue    `db:"-"`
+	Venue            *Venue    `db:-`
+}
+
+func initDb() *gorp.DbMap {
+	// connect to db using standard Go database/sql API
+	// use whatever database/sql driver you wish
+	connection := os.Getenv("FILTERIZER_DSN")
+	if connection == "" {
+		connection = os.Getenv("DATABASE_URL")
+	}
+	db, err := sql.Open("postgres", connection)
+	checkErr(err, "sql.Open failed")
+
+	// construct a gorp DbMap
+	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
+
+	dbmap.AddTableWithName(Venue{}, "venues").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Event{}, "events").SetKeys(true, "Id")
+
+	return dbmap
 }
 
 func OpeningSoon() []Event {
@@ -67,6 +80,12 @@ func OpeningSoon() []Event {
 	_, err := dbmap.Select(&events,
 		"select * from events where opening_date between current_date and current_date + interval '10 days' order by opening_date, opening_start_time")
 	checkErr(err, "Event select failed")
+
+	for i, _ := range events {
+		obj, err2 := dbmap.Get(Venue{}, events[i].VenueId)
+		checkErr(err2, "Venue select failed")
+		events[i].Venue = obj.(*Venue)
+	}
 	return events
 }
 
@@ -81,29 +100,9 @@ func (e *Event) Url() string {
 	if e.Website != "" {
 		return e.Website
 	}
-	return e.Venue().Website
+	return e.Venue.Website
 }
 
-func (e *Event) Venue() *Venue {
-	if e.CachedVenue != nil {
-		return e.CachedVenue
-	}
-	dbmap := initDb()
-	obj, err := dbmap.Get(Venue{}, e.VenueId)
-	checkErr(err, "Venue select failed")
-	venue := obj.(*Venue)
-	e.CachedVenue = venue
-	return venue
-}
-
-func (v *Venue) Neighborhood() *Neighborhood {
-	if v.CachedNeighborhood != nil {
-		return v.CachedNeighborhood
-	}
-	dbmap := initDb()
-	obj, err := dbmap.Get(Neighborhood{}, v.NeighborhoodId)
-	checkErr(err, "Neighborhood select failed")
-	neighborhood := obj.(*Neighborhood)
-	v.CachedNeighborhood = neighborhood
-	return neighborhood
+func (v *Venue) Neighborhood() string {
+	return Neighborhoods[v.NeighborhoodId]
 }

@@ -29,7 +29,7 @@
           <div class="opening">
             <h4><span class="title">{{ .Title }}</span> at <a href="{{ .Url }}">{{ .Venue.Name }}</a></h4>
             <p class="opening-date">{{ .OpeningDateTime }}</p>
-            <p class="address">{{ .Venue.Address }} [{{ .Venue.Neighborhood.Name }}]</p>
+            <p class="address">{{ .Venue.Address }} [{{ .Venue.Neighborhood }}]</p>
           </div>
         {{ end }}
       {{ end }}
