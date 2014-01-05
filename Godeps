@@ -3,6 +3,20 @@
 	"GoVersion": "go1.2 darwin/amd64",
 	"Deps": [
 		{
+			"ImportPath": "github.com/codegangsta/inject",
+			"Rev": "346a984957aa24276ebc5e7b16b3ac6a50fe8138"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/martini",
+			"Comment": "v0.1-52-g50f2d3f",
+			"Rev": "50f2d3f9d7eebef98b1a5dcf29dad72c66e918a7"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/martini-contrib/render",
+			"Comment": "v0.1-79-ga760c9e",
+			"Rev": "a760c9e93911e9ba629561c47ba3feff4c969257"
+		},
+		{
 			"ImportPath": "github.com/coopernurse/gorp",
 			"Comment": "v1.3",
 			"Rev": "d2579ddda55020b778370c79aa0785e0f5d0f2e4"
