@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"os"
 	"strings"
 	"time"
@@ -12,7 +12,13 @@ import (
 func initDb() *gorp.DbMap {
 	// connect to db using standard Go database/sql API
 	// use whatever database/sql driver you wish
-	db, err := sql.Open("postgres", os.Getenv("FILTERIZER_DSN"))
+	connection := os.Getenv("FILTERIZER_DSN")
+	if connection == "" {
+		url := os.Getenv("DATABASE_URL")
+		connection, _ := pq.ParseURL(url)
+		connection += " sslmode=require"
+	}
+	db, err := sql.Open("postgres", connection)
 	checkErr(err, "sql.Open failed")
 
 	// construct a gorp DbMap
