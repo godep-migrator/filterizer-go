@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
-	// "github.com/lib/pq"
+	_ "github.com/lib/pq"
 	"os"
 	"strings"
 	"time"
