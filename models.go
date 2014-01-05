@@ -14,10 +14,7 @@ func initDb() *gorp.DbMap {
 	// use whatever database/sql driver you wish
 	connection := os.Getenv("FILTERIZER_DSN")
 	if connection == "" {
-		url := os.Getenv("DATABASE_URL")
-		connection, _ := pq.ParseURL(url)
-		checkErr(err, "pq.ParseURL failed")
-		// connection += " sslmode=require"
+		connection = os.Getenv("DATABASE_URL")
 	}
 	db, err := sql.Open("postgres", connection)
 	checkErr(err, "sql.Open failed")
