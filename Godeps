@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/bhoggard/filterizer-go",
-	"GoVersion": "go1.2 darwin/amd64",
+	"GoVersion": "go1.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/inject",
