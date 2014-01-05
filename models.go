@@ -5,6 +5,7 @@ import (
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -30,13 +31,14 @@ type Neighborhood struct {
 }
 
 type Venue struct {
-	Id            int64
-	Name          string
-	Address       string
-	Website       string
-	NeigborhoodId int64     `db:"neighborhood_id"`
-	CreatedAt     time.Time `db:"created_at"`
-	UpdatedAt     time.Time `db:"updated_at"`
+	Id                 int64
+	Name               string
+	Address            string
+	Website            string
+	NeighborhoodId     int64         `db:"neighborhood_id"`
+	CreatedAt          time.Time     `db:"created_at"`
+	UpdatedAt          time.Time     `db:"updated_at"`
+	CachedNeighborhood *Neighborhood `db:"-"`
 }
 
 type Event struct {
@@ -52,15 +54,23 @@ type Event struct {
 	Tweeted          bool
 	CreatedAt        time.Time `db:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at"`
-	CachedVenue      *Venue
+	CachedVenue      *Venue    `db:"-"`
 }
 
 func OpeningSoon() []Event {
 	dbmap := initDb()
 	var events []Event
-	_, err := dbmap.Select(&events, "select * from events where venue_id=1")
+	_, err := dbmap.Select(&events,
+		"select * from events where opening_date between current_date and current_date + interval '10 days' order by opening_date, opening_start_time")
 	checkErr(err, "Event select failed")
 	return events
+}
+
+func (e *Event) OpeningDateTime() string {
+	str := e.OpeningDate.Format("Monday, January 2, ")
+	str += e.OpeningStartTime.Format("3:04")
+	str += e.OpeningEndTime.Format("-3:04 PM")
+	return strings.Replace(str, ":00", "", 2)
 }
 
 func (e *Event) Url() string {
@@ -80,4 +90,16 @@ func (e *Event) Venue() *Venue {
 	venue := obj.(*Venue)
 	e.CachedVenue = venue
 	return venue
+}
+
+func (v *Venue) Neighborhood() *Neighborhood {
+	if v.CachedNeighborhood != nil {
+		return v.CachedNeighborhood
+	}
+	dbmap := initDb()
+	obj, err := dbmap.Get(Neighborhood{}, v.NeighborhoodId)
+	checkErr(err, "Neighborhood select failed")
+	neighborhood := obj.(*Neighborhood)
+	v.CachedNeighborhood = neighborhood
+	return neighborhood
 }

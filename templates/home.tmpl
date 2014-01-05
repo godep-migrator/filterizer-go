@@ -22,9 +22,14 @@
 
     <section id="main">
       {{ if .opening_soon }}
+
+        <h3>Openings</h3>
+
         {{ range .opening_soon }}
           <div class="opening">
             <h4><span class="title">{{ .Title }}</span> at <a href="{{ .Url }}">{{ .Venue.Name }}</a></h4>
+            <p class="opening-date">{{ .OpeningDateTime }}</p>
+            <p class="address">{{ .Venue.Address }} [{{ .Venue.Neighborhood.Name }}]</p>
           </div>
         {{ end }}
       {{ end }}
