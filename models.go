@@ -16,7 +16,8 @@ func initDb() *gorp.DbMap {
 	if connection == "" {
 		url := os.Getenv("DATABASE_URL")
 		connection, _ := pq.ParseURL(url)
-		connection += " sslmode=require"
+		checkErr(err, "pq.ParseURL failed")
+		// connection += " sslmode=require"
 	}
 	db, err := sql.Open("postgres", connection)
 	checkErr(err, "sql.Open failed")
