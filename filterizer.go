@@ -26,7 +26,9 @@ func main() {
 func home(r render.Render) {
 	// var tmpl_vars map[string]interface{}
 	tmpl_vars := make(map[string]interface{})
-	tmpl_vars["opening_soon"] = OpeningSoon()
+	dbmap := initDb()
+	tmpl_vars["openingSoon"] = openingSoon(dbmap)
+	tmpl_vars["openNow"] = openNow(dbmap)
 	r.HTML(200, "home", tmpl_vars)
 }
 

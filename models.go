@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
+	// "log"
 	"os"
 	"strings"
 	"time"
@@ -64,7 +66,14 @@ type EventView struct {
 	OpeningDate         time.Time
 	OpeningStartTime    time.Time
 	OpeningEndTime      time.Time
+	EndDate             time.Time
 	Website             string
+}
+
+// struct used for showing events organized by neighborhood
+type NeighborhoodEvents struct {
+	Neighborhood string
+	Events       []EventView
 }
 
 func initDb() *gorp.DbMap {
@@ -83,22 +92,50 @@ func initDb() *gorp.DbMap {
 	dbmap.AddTableWithName(Venue{}, "venues").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Event{}, "events").SetKeys(true, "Id")
 
+	// dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
+
 	return dbmap
 }
 
-func OpeningSoon() []EventView {
-	dbmap := initDb()
+const eventViewFields = `
+	select e.title Title, e.id EventId, v.id VenueId, v.name VenueName, v.address VenueAddress, 
+	v.neighborhood_id VenueNeighborhoodId, e.opening_date OpeningDate, e.opening_start_time OpeningStartTime, 
+	e.opening_end_time OpeningEndTime, e.end_date EndDate, coalesce(e.website, v.website) Website
+	from events e, venues v
+`
+
+func openingSoon(dbmap *gorp.DbMap) []EventView {
 	var events []EventView
-	const query = `
-		select e.title Title, e.id EventId, v.id VenueId, v.name VenueName, v.address VenueAddress, 
-		v.neighborhood_id VenueNeighborhoodId, e.opening_date OpeningDate, e.opening_start_time OpeningStartTime, 
-		e.opening_end_time OpeningEndTime, coalesce(e.website, v.website) Website
-		from events e, venues v 
+	const query = eventViewFields + `
 		where e.venue_id = v.id and opening_date between current_date and current_date + interval '10 days' 
 		order by opening_date, opening_start_time
 	`
 	_, err := dbmap.Select(&events, query)
-	checkErr(err, "Event select failed")
+	checkErr(err, "openingSoon select failed")
+	return events
+}
+
+func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
+	neighborhoods := sortMapByValue(Neighborhoods)
+	list := make([]NeighborhoodEvents, 0, len(neighborhoods))
+	for _, i := range neighborhoods {
+		events := openByNeighborhood(dbmap, i.Key)
+		if len(events) > 0 {
+			list = append(list, NeighborhoodEvents{i.Value, events})
+		}
+	}
+	return list
+}
+
+func openByNeighborhood(dbmap *gorp.DbMap, hood_id int64) []EventView {
+	var events []EventView
+	const query = eventViewFields + `
+		where e.venue_id = v.id and e.start_date >= current_date 
+		  and e.end_date <= current_date and v.neighborhood_id = %d
+		order by e.end_date
+	`
+	_, err := dbmap.Select(&events, fmt.Sprintf(query, hood_id))
+	checkErr(err, "openByNeighborhood select failed")
 	return events
 }
 

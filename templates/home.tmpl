@@ -21,11 +21,11 @@
     </section>
 
     <section id="main">
-      {{ if .opening_soon }}
+      {{ if .openingSoon }}
 
         <h3>Openings</h3>
 
-        {{ range .opening_soon }}
+        {{ range .openingSoon }}
           <div class="opening">
             <h4><span class="title">{{ .Title }}</span> at <a href="{{ .Website }}">{{ .VenueName }}</a></h4>
             <p class="opening-date">{{ .OpeningDateTime }}</p>
@@ -33,6 +33,17 @@
           </div>
         {{ end }}
       {{ end }}
+
+      {{ if .openNow }}
+
+        <h3>Already Open</h3>
+
+        {{ range .openNow }}
+          <h4 class="neighborhood">{{ .Neighborhood }}</h4>
+        {{ end }}
+
+      {{ end }}
+
     </section>
 
     <section id="footer">
