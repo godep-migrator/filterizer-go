@@ -52,7 +52,19 @@ type Event struct {
 	Tweeted          bool
 	CreatedAt        time.Time `db:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at"`
-	Venue            *Venue    `db:-`
+}
+
+type EventView struct {
+	EventId             int64
+	VenueId             int64
+	Title               string
+	VenueName           string
+	VenueAddress        string
+	VenueNeighborhoodId int64
+	OpeningDate         time.Time
+	OpeningStartTime    time.Time
+	OpeningEndTime      time.Time
+	Website             string
 }
 
 func initDb() *gorp.DbMap {
@@ -74,35 +86,29 @@ func initDb() *gorp.DbMap {
 	return dbmap
 }
 
-func OpeningSoon() []Event {
+func OpeningSoon() []EventView {
 	dbmap := initDb()
-	var events []Event
-	_, err := dbmap.Select(&events,
-		"select * from events where opening_date between current_date and current_date + interval '10 days' order by opening_date, opening_start_time")
+	var events []EventView
+	const query = `
+		select e.title Title, e.id EventId, v.id VenueId, v.name VenueName, v.address VenueAddress, 
+		v.neighborhood_id VenueNeighborhoodId, e.opening_date OpeningDate, e.opening_start_time OpeningStartTime, 
+		e.opening_end_time OpeningEndTime, coalesce(e.website, v.website) Website
+		from events e, venues v 
+		where e.venue_id = v.id and opening_date between current_date and current_date + interval '10 days' 
+		order by opening_date, opening_start_time
+	`
+	_, err := dbmap.Select(&events, query)
 	checkErr(err, "Event select failed")
-
-	for i, _ := range events {
-		obj, err2 := dbmap.Get(Venue{}, events[i].VenueId)
-		checkErr(err2, "Venue select failed")
-		events[i].Venue = obj.(*Venue)
-	}
 	return events
 }
 
-func (e *Event) OpeningDateTime() string {
+func (e *EventView) OpeningDateTime() string {
 	str := e.OpeningDate.Format("Monday, January 2, ")
 	str += e.OpeningStartTime.Format("3:04")
 	str += e.OpeningEndTime.Format("-3:04 PM")
 	return strings.Replace(str, ":00", "", 2)
 }
 
-func (e *Event) Url() string {
-	if e.Website != "" {
-		return e.Website
-	}
-	return e.Venue.Website
-}
-
-func (v *Venue) Neighborhood() string {
-	return Neighborhoods[v.NeighborhoodId]
+func (e *EventView) Neighborhood() string {
+	return Neighborhoods[e.VenueNeighborhoodId]
 }

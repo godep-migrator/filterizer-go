@@ -27,9 +27,9 @@
 
         {{ range .opening_soon }}
           <div class="opening">
-            <h4><span class="title">{{ .Title }}</span> at <a href="{{ .Url }}">{{ .Venue.Name }}</a></h4>
+            <h4><span class="title">{{ .Title }}</span> at <a href="{{ .Website }}">{{ .VenueName }}</a></h4>
             <p class="opening-date">{{ .OpeningDateTime }}</p>
-            <p class="address">{{ .Venue.Address }} [{{ .Venue.Neighborhood }}]</p>
+            <p class="address">{{ .VenueAddress }} [{{ .Neighborhood }}]</p>
           </div>
         {{ end }}
       {{ end }}
