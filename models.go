@@ -2,33 +2,32 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
-	// "log"
 	"os"
 	"strings"
 	"time"
 )
 
 var Neighborhoods = map[int64]string{
-	1:  "Chelsea",
-	2:  "East Village / Lower East Side",
-	3:  "Bushwick/Ridgewood",
-	5:  "Tribeca / Downtown",
-	6:  "SoHo",
-	7:  "Williamsburg",
-	8:  "Upper East Side",
-	9:  "Midtown",
-	10: "Gowanus",
-	11: "Long Island City",
-	12: "Museums",
-	13: "Greenwich Village",
-	14: "Dumbo",
 	15: "Boerum Hill",
 	16: "Bronx",
-	17: "Sunset Park, Brooklyn",
+	3:  "Bushwick/Ridgewood",
+	1:  "Chelsea",
+	14: "Dumbo",
+	2:  "East Village / Lower East Side",
+	10: "Gowanus",
+	13: "Greenwich Village",
 	18: "Hell's Kitchen/Midtown West",
+	11: "Long Island City",
+	9:  "Midtown",
+	12: "Museums",
+	19: "Park Slope",
+	6:  "SoHo",
+	17: "Sunset Park, Brooklyn",
+	5:  "Tribeca / Downtown",
+	8:  "Upper East Side",
+	7:  "Williamsburg",
 }
 
 type Venue struct {
@@ -99,7 +98,7 @@ func initDb() *gorp.DbMap {
 
 const eventViewFields = `
 	select e.title Title, e.id EventId, v.id VenueId, v.name VenueName, v.address VenueAddress, 
-	v.neighborhood_id VenueNeighborhoodId, e.opening_date OpeningDate, e.opening_start_time OpeningStartTime, 
+	v.neighborhood_id VenueNeighborhoodId, coalesce(e.opening_date, 'epoch'::date) OpeningDate, e.opening_start_time OpeningStartTime, 
 	e.opening_end_time OpeningEndTime, e.end_date EndDate, coalesce(e.website, v.website) Website
 	from events e, venues v
 `
@@ -116,12 +115,11 @@ func openingSoon(dbmap *gorp.DbMap) []EventView {
 }
 
 func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
-	neighborhoods := sortMapByValue(Neighborhoods)
-	list := make([]NeighborhoodEvents, 0, len(neighborhoods))
-	for _, i := range neighborhoods {
-		events := openByNeighborhood(dbmap, i.Key)
+	list := make([]NeighborhoodEvents, 0, len(Neighborhoods))
+	for key, value := range Neighborhoods {
+		events := openByNeighborhood(dbmap, key)
 		if len(events) > 0 {
-			list = append(list, NeighborhoodEvents{i.Value, events})
+			list = append(list, NeighborhoodEvents{value, events})
 		}
 	}
 	return list
@@ -130,11 +128,11 @@ func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
 func openByNeighborhood(dbmap *gorp.DbMap, hood_id int64) []EventView {
 	var events []EventView
 	const query = eventViewFields + `
-		where e.venue_id = v.id and e.start_date >= current_date 
-		  and e.end_date <= current_date and v.neighborhood_id = %d
+		where e.venue_id = v.id and e.start_date <= current_date 
+		  and e.end_date >= current_date and v.neighborhood_id = $1
 		order by e.end_date
 	`
-	_, err := dbmap.Select(&events, fmt.Sprintf(query, hood_id))
+	_, err := dbmap.Select(&events, query, hood_id)
 	checkErr(err, "openByNeighborhood select failed")
 	return events
 }
@@ -144,6 +142,10 @@ func (e *EventView) OpeningDateTime() string {
 	str += e.OpeningStartTime.Format("3:04")
 	str += e.OpeningEndTime.Format("-3:04 PM")
 	return strings.Replace(str, ":00", "", 2)
+}
+
+func (e *EventView) FormattedEndDate() string {
+	return e.EndDate.Format("Monday, January 2")
 }
 
 func (e *EventView) Neighborhood() string {

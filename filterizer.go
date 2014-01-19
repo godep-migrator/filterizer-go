@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 	"github.com/codegangsta/martini"
 	"github.com/codegangsta/martini-contrib/render"
 	"log"
@@ -24,7 +23,6 @@ func main() {
 }
 
 func home(r render.Render) {
-	// var tmpl_vars map[string]interface{}
 	tmpl_vars := make(map[string]interface{})
 	dbmap := initDb()
 	tmpl_vars["openingSoon"] = openingSoon(dbmap)

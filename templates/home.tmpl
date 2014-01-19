@@ -40,6 +40,13 @@
 
         {{ range .openNow }}
           <h4 class="neighborhood">{{ .Neighborhood }}</h4>
+
+          {{ range .Events }}
+            <h4><span class="title">{{ .Title }}</span> at <a href="{{ .Website }}">{{ .VenueName }}</a></h4>
+            <p class="address">{{ .VenueAddress }}</p>
+            <p class="closes">closes {{ .FormattedEndDate }}</p>
+          {{ end }}
+
         {{ end }}
 
       {{ end }}
