@@ -13,17 +13,17 @@
 		},
 		{
 			"ImportPath": "github.com/codegangsta/martini-contrib/render",
-			"Comment": "v0.1-79-ga760c9e",
-			"Rev": "a760c9e93911e9ba629561c47ba3feff4c969257"
+			"Comment": "v0.1-96-g022a91a",
+			"Rev": "022a91adf6b5cbc1fe0f1b6d6abc143bc9216b38"
 		},
 		{
 			"ImportPath": "github.com/coopernurse/gorp",
-			"Comment": "v1.3",
-			"Rev": "d2579ddda55020b778370c79aa0785e0f5d0f2e4"
+			"Comment": "v1.4",
+			"Rev": "08e1d8ca19c74cb69e01ff7a8f332a2e46448c47"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Rev": "78760269eebe5e70b28bb94bff676d7b28df275d"
+			"Rev": "1abc04666264e3f3b6c0907c92420789e72d987a"
 		}
 	]
 }
