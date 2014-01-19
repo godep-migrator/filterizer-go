@@ -107,7 +107,7 @@ const eventViewFields = `
 func openingSoon(dbmap *gorp.DbMap) []EventView {
 	var events []EventView
 	const query = eventViewFields + `
-		where e.venue_id = v.id and opening_date between (current_date at time zone 'EST') and (current_date at time zone 'EST') + interval '10 days' 
+		where e.venue_id = v.id and opening_date at time zone 'EST' between (current_date at time zone 'EST') and (current_date at time zone 'EST') + interval '10 days' 
 		order by opening_date, opening_start_time
 	`
 	_, err := dbmap.Select(&events, query)
@@ -129,8 +129,8 @@ func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
 func openByNeighborhood(dbmap *gorp.DbMap, hood_id int64) []EventView {
 	var events []EventView
 	const query = eventViewFields + `
-		where e.venue_id = v.id and e.start_date <= current_date at time zone 'EST' 
-		  and e.end_date >= current_date at time zone 'EST' and v.neighborhood_id = $1
+		where e.venue_id = v.id and e.start_date at time zone 'EST' <= current_date at time zone 'EST' 
+		  and e.end_date at time zone 'EST' >= current_date at time zone 'EST' and v.neighborhood_id = $1
 		order by e.end_date
 	`
 	_, err := dbmap.Select(&events, query, hood_id)
