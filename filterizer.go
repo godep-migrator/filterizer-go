@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+var NeighborhoodMap = make(map[int64]string)
+
 func main() {
 	m := martini.Classic()
 	m.Use(render.Renderer())
@@ -16,6 +18,11 @@ func main() {
 	if port == "" {
 		port = "3000"
 	}
+
+	for _, v := range Neighborhoods {
+		NeighborhoodMap[v.Id] = v.Name
+	}
+
 	err := http.ListenAndServe(":"+port, m)
 	if err != nil {
 		panic(err)

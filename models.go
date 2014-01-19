@@ -4,30 +4,36 @@ import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
+	"log"
 	"os"
 	"strings"
 	"time"
 )
 
-var Neighborhoods = map[int64]string{
-	15: "Boerum Hill",
-	16: "Bronx",
-	3:  "Bushwick/Ridgewood",
-	1:  "Chelsea",
-	14: "Dumbo",
-	2:  "East Village / Lower East Side",
-	10: "Gowanus",
-	13: "Greenwich Village",
-	18: "Hell's Kitchen/Midtown West",
-	11: "Long Island City",
-	9:  "Midtown",
-	12: "Museums",
-	19: "Park Slope",
-	6:  "SoHo",
-	17: "Sunset Park, Brooklyn",
-	5:  "Tribeca / Downtown",
-	8:  "Upper East Side",
-	7:  "Williamsburg",
+type Neighborhood struct {
+	Id   int64
+	Name string
+}
+
+var Neighborhoods = []Neighborhood{
+	{15, "Boerum Hill"},
+	{16, "Bronx"},
+	{3, "Bushwick/Ridgewood"},
+	{1, "Chelsea"},
+	{14, "Dumbo"},
+	{2, "East Village / Lower East Side"},
+	{10, "Gowanus"},
+	{13, "Greenwich Village"},
+	{18, "Hell's Kitchen/Midtown West"},
+	{11, "Long Island City"},
+	{9, "Midtown"},
+	{12, "Museums"},
+	{19, "Park Slope"},
+	{6, "SoHo"},
+	{17, "Sunset Park, Brooklyn"},
+	{5, "Tribeca / Downtown"},
+	{8, "Upper East Side"},
+	{7, "Williamsburg"},
 }
 
 type Venue struct {
@@ -116,10 +122,11 @@ func openingSoon(dbmap *gorp.DbMap) []EventView {
 
 func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
 	list := make([]NeighborhoodEvents, 0, len(Neighborhoods))
-	for key, value := range Neighborhoods {
-		events := openByNeighborhood(dbmap, key)
+	for _, value := range Neighborhoods {
+		events := openByNeighborhood(dbmap, value.Id)
+		log.Printf("found %v events for hood_id %v", len(events), value.Name)
 		if len(events) > 0 {
-			list = append(list, NeighborhoodEvents{value, events})
+			list = append(list, NeighborhoodEvents{value.Name, events})
 		}
 	}
 	return list
@@ -149,5 +156,5 @@ func (e *EventView) FormattedEndDate() string {
 }
 
 func (e *EventView) Neighborhood() string {
-	return Neighborhoods[e.VenueNeighborhoodId]
+	return NeighborhoodMap[e.VenueNeighborhoodId]
 }
