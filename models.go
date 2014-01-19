@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/coopernurse/gorp"
 	_ "github.com/lib/pq"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -93,12 +92,8 @@ func initDb() *gorp.DbMap {
 
 	// construct a gorp DbMap
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-
 	dbmap.AddTableWithName(Venue{}, "venues").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Event{}, "events").SetKeys(true, "Id")
-
-	// dbmap.TraceOn("", log.New(os.Stdout, "gorptest: ", log.Lmicroseconds))
-
 	return dbmap
 }
 
@@ -112,7 +107,7 @@ const eventViewFields = `
 func openingSoon(dbmap *gorp.DbMap) []EventView {
 	var events []EventView
 	const query = eventViewFields + `
-		where e.venue_id = v.id and opening_date between current_date and current_date + interval '10 days' 
+		where e.venue_id = v.id and opening_date between (current_date at time zone 'EST') and (current_date at time zone 'EST') + interval '10 days' 
 		order by opening_date, opening_start_time
 	`
 	_, err := dbmap.Select(&events, query)
@@ -124,7 +119,6 @@ func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
 	list := make([]NeighborhoodEvents, 0, len(Neighborhoods))
 	for _, value := range Neighborhoods {
 		events := openByNeighborhood(dbmap, value.Id)
-		log.Printf("found %v events for hood_id %v", len(events), value.Name)
 		if len(events) > 0 {
 			list = append(list, NeighborhoodEvents{value.Name, events})
 		}
@@ -135,8 +129,8 @@ func openNow(dbmap *gorp.DbMap) []NeighborhoodEvents {
 func openByNeighborhood(dbmap *gorp.DbMap, hood_id int64) []EventView {
 	var events []EventView
 	const query = eventViewFields + `
-		where e.venue_id = v.id and e.start_date <= current_date 
-		  and e.end_date >= current_date and v.neighborhood_id = $1
+		where e.venue_id = v.id and e.start_date <= current_date at time zone 'EST' 
+		  and e.end_date >= current_date at time zone 'EST' and v.neighborhood_id = $1
 		order by e.end_date
 	`
 	_, err := dbmap.Select(&events, query, hood_id)
