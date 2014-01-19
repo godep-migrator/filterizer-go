@@ -15,6 +15,7 @@ func main() {
 	m := martini.Classic()
 	dbmap := initDb()
 	m.Map(dbmap)
+	m.Use(CORS)
 
 	for _, v := range Neighborhoods {
 		NeighborhoodMap[v.Id] = v.Name
@@ -22,6 +23,7 @@ func main() {
 
 	m.Use(render.Renderer())
 	m.Get("/", home)
+	m.Get("/neighborhoods", getNeighborhoods)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -32,6 +34,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func getNeighborhoods(w http.ResponseWriter, r render.Render) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	r.JSON(200, Neighborhoods)
 }
 
 func home(dbmap *gorp.DbMap, r render.Render) {
