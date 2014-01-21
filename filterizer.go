@@ -38,7 +38,9 @@ func main() {
 
 func getNeighborhoods(w http.ResponseWriter, r render.Render) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	r.JSON(200, Neighborhoods)
+	response := make(map[string]interface{})
+	response["neighborhoods"] = Neighborhoods
+	r.JSON(200, response)
 }
 
 func home(dbmap *gorp.DbMap, r render.Render) {
